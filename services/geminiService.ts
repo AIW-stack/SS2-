@@ -1,13 +1,8 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { Subscription, ExploreInsight } from "../types";
-
-// Always initialize the client with an API key from process.env.API_KEY
-// Use a named parameter as required by the latest SDK guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { Subscription, ExploreInsight, Recommendation } from "../types";
 
 export interface RecommendationResponse {
-  recommendations: any[];
+  recommendations: Recommendation[];
   sources: { title: string; uri: string }[];
 }
 
@@ -16,135 +11,125 @@ export interface ExploreResponse {
   sources: { title: string; uri: string }[];
 }
 
-// Get AI-powered savings recommendations using Search Grounding.
-// Uses 'gemini-3-pro-preview' as this is a complex reasoning task involving financial analysis.
+/**
+ * Mock implementation of smart recommendations.
+ * Generates tailored savings advice based on user persona and active subscriptions.
+ */
 export const getSmartRecommendations = async (subscriptions: Subscription[], persona: string): Promise<RecommendationResponse> => {
-  const prompt = `
-    Analyze these user subscriptions for a user in India with the persona: ${persona}.
-    Identify financial leaks, unused subscriptions, or better alternatives based on cost vs usage.
-    ALSO, use your search tool to check if there are any recent price hikes for these services in India (2024-2025) or better competing offers (like family plans or bundles).
-    
-    Subscriptions: ${JSON.stringify(subscriptions.map(s => ({ 
-      name: s.name, 
-      amount: s.amount, 
-      usageLevel: s.usageLevel, 
-      usageMinutes: s.usageMinutes, 
-      category: s.category 
-    })))}
-    
-    Return a JSON array of recommendations.
-  `;
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 800));
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              description: { type: Type.STRING },
-              potentialSavings: { type: Type.NUMBER },
-              type: { type: Type.STRING, enum: ['Cancel', 'Downgrade', 'Duplicate', 'Family', 'Pause'] },
-              actionLabel: { type: Type.STRING }
-            },
-            required: ["id", "title", "description", "potentialSavings", "type", "actionLabel"]
-          }
-        }
-      }
+  const recommendations: Recommendation[] = [];
+  const activeCount = subscriptions.filter(s => s.status === 'Active').length;
+
+  // Logic to generate somewhat "relevant" mock data
+  if (persona === 'Student') {
+    recommendations.push({
+      id: 'rec-1',
+      title: 'Switch to Student Plan',
+      description: 'We detected you are paying full price for YouTube. Verify your ID to save ₹60/month.',
+      potentialSavings: 60,
+      type: 'Downgrade',
+      actionLabel: 'Verify Student ID'
     });
-
-    // Access the .text property directly to get the generated string output.
-    const recommendations = JSON.parse(response.text || "[]");
-    
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = groundingChunks
-      .filter((chunk: any) => chunk.web)
-      .map((chunk: any) => ({
-        title: chunk.web.title,
-        uri: chunk.web.uri
-      }));
-
-    return { recommendations, sources };
-  } catch (error) {
-    console.error("Gemini Error:", error);
-    return { recommendations: [], sources: [] };
   }
+
+  if (activeCount > 3) {
+    recommendations.push({
+      id: 'rec-2',
+      title: 'Consolidate OTT Apps',
+      description: 'You have 3+ active OTT subs. Switch to the Amazon Prime + SonyLIV bundle for a 20% discount.',
+      potentialSavings: 150,
+      type: 'Family',
+      actionLabel: 'View Bundle'
+    });
+  }
+
+  const unused = subscriptions.find(s => s.usageLevel === 'Low' || s.usageLevel === 'Zero');
+  if (unused) {
+    recommendations.push({
+      id: 'rec-3',
+      title: `Cancel Unused ${unused.name}`,
+      description: `You haven't used ${unused.name} in 25 days. Cancelling now saves you ${unused.currency}${unused.amount * 12} annually.`,
+      potentialSavings: unused.amount,
+      type: 'Cancel',
+      actionLabel: `Revoke ${unused.name}`
+    });
+  }
+
+  return {
+    recommendations,
+    sources: [
+      { title: "Economic Times: Subscription Fatigue in India", uri: "https://economictimes.indiatimes.com" },
+      { title: "Gadgets360: Best Bundle Offers 2025", uri: "https://gadgets360.com" }
+    ]
+  };
 };
 
-// Get market insights using Search Grounding, combining current affairs with user usage.
-// Uses 'gemini-3-pro-preview' for advanced reasoning about market trends and current affairs.
+/**
+ * Mock implementation of market insights.
+ * Combines general market trends with user data for a "smart" explore experience.
+ */
 export const getExploreInsights = async (subscriptions: Subscription[]): Promise<ExploreResponse> => {
-  const activeSubs = subscriptions.filter(s => s.status === 'Active').map(s => ({ name: s.name, usage: s.usageLevel }));
-  const pausedSubs = subscriptions.filter(s => s.status === 'Paused').map(s => s.name);
-  
-  const prompt = `
-    You are a high-level digital finance consultant in India.
-    Combine user usage data with LATEST CURRENT AFFAIRS (News, Sports, Tech releases in 2024-2025) to provide actionable insights.
-    
-    User Data:
-    - Active: ${JSON.stringify(activeSubs)}
-    - Paused: ${JSON.stringify(pausedSubs)}
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1200));
 
-    CRITICAL SEARCH: Search for recent Swiggy platform fee hikes or price increases in India (late 2024/2025). This is a high-priority insight for the user.
-    
-    Search for other:
-    1. Major events in India (IPL 2024/2025, ICC, Big movie releases, festive seasons) where a subscription might be WORTH IT.
-    2. Negative news or price spikes for their current low-usage active apps where UNSUBSCRIBING is recommended.
-    3. Better bundle offers based on recent market shifts (e.g. Jio/Airtel new bundles).
+  const insights: ExploreInsight[] = [
+    {
+      id: 'exp-1',
+      title: 'Swiggy Platform Fee Hike',
+      description: 'Swiggy has increased its platform fee to ₹10 per order in major metros. Monthly costs for frequent users may rise by ₹200.',
+      sourceLabel: 'Inc42 Market Report',
+      type: 'Price Hike',
+      actionType: 'None',
+      targetService: 'Swiggy',
+      relevance: 'High priority: You are an active Swiggy One member.',
+      ctaLabel: 'See Impact',
+      icon: '🍕'
+    },
+    {
+      id: 'exp-2',
+      title: 'IPL 2025: Disney+ Hotstar Offer',
+      description: 'The IPL season is approaching. Annual plans are currently 30% cheaper if you subscribe before the first match.',
+      sourceLabel: 'Financial Express',
+      type: 'New Deal',
+      actionType: 'Subscribe',
+      targetService: 'Disney+ Hotstar',
+      relevance: 'Seasonal: You usually watch sports during March-May.',
+      ctaLabel: 'Grab 30% Off',
+      icon: '🏏'
+    },
+    {
+      id: 'exp-3',
+      title: 'Netflix Password Sharing Policy',
+      description: 'Netflix is tightening extra-member fees in India. Check your family profiles to avoid surprise charges.',
+      sourceLabel: 'TechCrunch India',
+      type: 'Current Affair',
+      actionType: 'Pause',
+      targetService: 'Netflix',
+      relevance: 'Financial Hygiene: You have a Premium shared plan.',
+      ctaLabel: 'Manage Profiles',
+      icon: '🎬'
+    },
+    {
+      id: 'exp-4',
+      title: 'Alternative: JioCinema Premium',
+      description: 'JioCinema is offering HBO and Warner Bros content for ₹29/month, making it a viable alternative to more expensive OTTs.',
+      sourceLabel: 'Economic Times',
+      type: 'Alternative',
+      actionType: 'Subscribe',
+      targetService: 'JioCinema',
+      relevance: 'Optimization: Cheaper alternative to your current entertainment stack.',
+      ctaLabel: 'Try for ₹29',
+      icon: '✨'
+    }
+  ];
 
-    Return a JSON array of ExploreInsight objects. For "actionType", use 'Subscribe' if you recommend a new one, 'Unsubscribe' if they should quit an active one, 'Pause' if it's seasonal, or 'None' for info only.
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: prompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              description: { type: Type.STRING },
-              sourceLabel: { type: Type.STRING },
-              type: { type: Type.STRING, enum: ['Price Hike', 'New Deal', 'Trending', 'Alternative', 'Current Affair'] },
-              actionType: { type: Type.STRING, enum: ['Subscribe', 'Unsubscribe', 'Pause', 'None'] },
-              targetService: { type: Type.STRING },
-              relevance: { type: Type.STRING },
-              ctaLabel: { type: Type.STRING },
-              icon: { type: Type.STRING }
-            },
-            required: ["id", "title", "description", "sourceLabel", "type", "actionType", "targetService", "relevance", "ctaLabel"]
-          }
-        }
-      }
-    });
-
-    // Directly access the .text property from the response object.
-    const insights = JSON.parse(response.text || "[]");
-
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = groundingChunks
-      .filter((chunk: any) => chunk.web)
-      .map((chunk: any) => ({
-        title: chunk.web.title,
-        uri: chunk.web.uri
-      }));
-
-    return { insights, sources };
-  } catch (error) {
-    console.error("Gemini Explore Error:", error);
-    return { insights: [], sources: [] };
-  }
+  return {
+    insights,
+    sources: [
+      { title: "Inc42: Swiggy's Revenue Strategy 2025", uri: "https://inc42.com" },
+      { title: "Hindustan Times: IPL Streaming Rights Update", uri: "https://hindustantimes.com" }
+    ]
+  };
 };
