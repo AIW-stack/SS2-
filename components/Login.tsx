@@ -48,7 +48,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <Logo size="xl" countryCode={countryCode} />
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">SpendShield</h1>
-          <p className="text-slate-500 mt-2 font-medium">Global Smart Subscription Manager</p>
+          <p className="text-slate-500 mt-2 font-bold italic tracking-wide">Know. Control. Save.</p>
         </div>
 
         <div className="bg-slate-50 p-8 rounded-[3rem] border border-slate-100 shadow-sm relative overflow-hidden">

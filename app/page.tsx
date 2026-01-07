@@ -18,11 +18,13 @@ import { ExploreSection } from '../components/ExploreSection';
 import { PaymentSources } from '../components/PaymentSources';
 import { ReferralSection } from '../components/ReferralSection';
 import { PersonaQuestionnaire } from '../components/PersonaQuestionnaire';
+import { ConsentForm } from '../components/ConsentForm';
+import { FreemiumOffer } from '../components/FreemiumOffer';
 
 export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [onboardingStep, setOnboardingStep] = useState<'discovery' | 'persona'>('discovery');
+  const [onboardingStep, setOnboardingStep] = useState<'consent' | 'discovery' | 'persona' | 'freemium-offer'>('consent');
   const [isNewUser, setIsNewUser] = useState(false);
   const [userMobile, setUserMobile] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
@@ -36,7 +38,7 @@ export default function Page() {
   const [winbackAds, setWinbackAds] = useState<Advertisement[]>(MOCK_WINBACK_ADS);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [exploreInsights, setExploreInsights] = useState<ExploreInsight[]>([]);
-  const [referralCredits, setReferralCredits] = useState(0);
+  const [referralDays, setReferralDays] = useState(0);
   const [sources, setSources] = useState<{ title: string; uri: string }[]>([]);
   const [exploreSources, setExploreSources] = useState<{ title: string; uri: string }[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
@@ -117,10 +119,14 @@ export default function Page() {
     setCurrency(determineCurrency(code));
     if (isNew) {
       setIsRegistering(true);
-      setOnboardingStep('discovery');
+      setOnboardingStep('consent');
     } else {
       setIsLoggedIn(true);
     }
+  };
+
+  const handleConsentComplete = () => {
+    setOnboardingStep('discovery');
   };
 
   const handleOnboardingNext = (data?: { subs?: Subscription[], sources?: PaymentIntegration[] }) => {
@@ -131,6 +137,11 @@ export default function Page() {
 
   const handlePersonaSelect = (p: UserPersona) => {
     setPersona(p);
+    setOnboardingStep('freemium-offer');
+  };
+
+  const handleClaimFreemium = () => {
+    setIsPremium(true);
     setIsRegistering(false);
     setIsLoggedIn(true);
     setActiveTab('home');
@@ -140,8 +151,8 @@ export default function Page() {
     alert(`Initiating manual linking flow for ${type}...`);
   };
 
-  const handleReferralSuccess = (credits: number) => {
-    setReferralCredits(prev => prev + credits);
+  const handleReferralSuccess = (daysGained: number) => {
+    setReferralDays(prev => prev + daysGained);
   };
 
   const handleExploreAction = (insight: ExploreInsight) => {
@@ -176,6 +187,9 @@ export default function Page() {
   }
 
   if (isRegistering) {
+    if (onboardingStep === 'consent') {
+      return <ConsentForm onComplete={handleConsentComplete} />;
+    }
     if (onboardingStep === 'discovery') {
       return (
         <OnboardingDiscovery 
@@ -188,6 +202,9 @@ export default function Page() {
     }
     if (onboardingStep === 'persona') {
       return <PersonaQuestionnaire onSelect={handlePersonaSelect} />;
+    }
+    if (onboardingStep === 'freemium-offer') {
+      return <FreemiumOffer onClaim={handleClaimFreemium} />;
     }
   }
 
@@ -220,6 +237,16 @@ export default function Page() {
           </div>
 
           <div className="mt-auto pt-8 border-t border-slate-100">
+             {referralDays > 0 && (
+              <div className="mb-6 bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">Extension Earned</p>
+                  <p className="text-xl font-black text-emerald-600">🕒 {referralDays} Days</p>
+                </div>
+                <div className="text-right text-xl">🎁</div>
+              </div>
+            )}
+
             <div className="mb-6">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Select Experience</p>
               <div className="grid grid-cols-2 gap-3">
@@ -254,7 +281,7 @@ export default function Page() {
                 {activeTab === 'home' && `${regionalGreeting}, ${persona}!`}
                 {activeTab === 'subscriptions' && 'Subscriptions & Safety'}
                 {activeTab === 'payments' && 'Vault & Payment Sources'}
-                {activeTab === 'refer' && 'Refer & Earn Credits'}
+                {activeTab === 'refer' && 'Refer & Earn Extension'}
                 {activeTab === 'savings-lab' && 'Savings Lab'}
                 {activeTab === 'explore' && 'Market Explorer'}
               </h1>
@@ -264,7 +291,7 @@ export default function Page() {
           {activeTab === 'home' && (
             <div className="flex flex-col space-y-10">
               <MascotFin isSenior={isSenior} countryCode={countryCode} message={`Welcome to SpendShield. I've analyzed your upcoming payments.`} />
-              <Dashboard totalSpend={totalMonthlySpend} persona={persona} />
+              <Dashboard totalSpend={totalMonthlySpend} persona={persona} isPremium={isPremium} />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {MOCK_ADS.slice(0, 2).map(ad => (
                     <div key={ad.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
@@ -293,7 +320,7 @@ export default function Page() {
           )}
 
           {activeTab === 'refer' && (
-            <ReferralSection credits={referralCredits} persona={persona} onReferralSuccess={handleReferralSuccess} />
+            <ReferralSection days={referralDays} persona={persona} onReferralSuccess={handleReferralSuccess} />
           )}
 
           {activeTab === 'savings-lab' && (

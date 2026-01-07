@@ -5,12 +5,12 @@ import { MOCK_CONTACTS } from '../constants';
 import { Button } from './ui/Button';
 
 interface ReferralSectionProps {
-  credits: number;
+  days: number;
   persona: UserPersona;
-  onReferralSuccess: (creditsGained: number) => void;
+  onReferralSuccess: (daysGained: number) => void;
 }
 
-export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, persona, onReferralSuccess }) => {
+export const ReferralSection: React.FC<ReferralSectionProps> = ({ days, persona, onReferralSuccess }) => {
   const [hasPermission, setHasPermission] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>(MOCK_CONTACTS);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -26,25 +26,24 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, perso
 
   const handleRefer = (phone: string) => {
     setContacts(prev => prev.map(c => c.phone === phone ? { ...c, referred: true } : c));
-    // Simulate an "active referral" - in real app would wait for they to sign up
-    // For demo, we grant credits immediately
-    onReferralSuccess(10);
+    // Grant 7 days extension per referral
+    onReferralSuccess(7);
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Credit Summary Card */}
+      {/* Credit Summary Card -> Extension Summary Card */}
       <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
-            <h3 className={`font-black tracking-tight mb-2 ${isSenior ? 'text-4xl' : 'text-3xl'}`}>Refer & Earn Credits</h3>
-            <p className="text-indigo-100 font-medium max-w-sm">Help your friends stop money leaks and get rewarded for every active signup!</p>
+            <h3 className={`font-black tracking-tight mb-2 ${isSenior ? 'text-4xl' : 'text-3xl'}`}>Extend Your Premium</h3>
+            <p className="text-indigo-100 font-medium max-w-sm">Help friends stop money leaks. For every friend who joins, your Pro plan extends by <span className="text-amber-400 font-black">7 days</span>!</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/20 text-center min-w-[200px]">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-indigo-200">Total Credits</p>
-            <h2 className="text-6xl font-black">{credits}</h2>
-            <p className="text-[10px] font-black uppercase mt-2 text-emerald-300">₹{credits} Value</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-indigo-200">Days Earned</p>
+            <h2 className="text-6xl font-black">{days}</h2>
+            <p className="text-[10px] font-black uppercase mt-2 text-emerald-300">Premium Extension</p>
           </div>
         </div>
       </div>
@@ -56,7 +55,7 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, perso
           </div>
           <div className="max-w-md mx-auto space-y-4">
             <h4 className="text-2xl font-black text-slate-900 tracking-tight">Sync Your Contacts</h4>
-            <p className="text-slate-500 font-medium">Allow SpendShield to access your contact list to easily refer friends and family members. You'll get 10 credits for every active referral.</p>
+            <p className="text-slate-500 font-medium">Allow SpendShield to access your contact list to easily refer friends and family members. You'll get a 7-day Pro extension for every friend who signs up.</p>
           </div>
           <Button 
             onClick={requestContactPermission}
@@ -73,7 +72,7 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, perso
         <div className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <h4 className={`font-black text-slate-900 ${isSenior ? 'text-3xl' : 'text-xl'}`}>Suggested Contacts</h4>
-            <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-3 py-1 rounded-full">Earn 10 Credits / Friend</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-3 py-1 rounded-full">+7 Days Pro / Friend</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -96,7 +95,7 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, perso
                   <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{contact.phone}</p>
                 </div>
                 {contact.referred ? (
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full">Referral Sent</span>
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full">Invite Sent</span>
                 ) : (
                   <Button 
                     variant="primary" 
@@ -104,7 +103,7 @@ export const ReferralSection: React.FC<ReferralSectionProps> = ({ credits, perso
                     onClick={() => handleRefer(contact.phone)}
                     className="rounded-full px-8 font-black text-[10px] uppercase tracking-widest"
                   >
-                    Refer Now
+                    Refer & Earn
                   </Button>
                 )}
               </div>

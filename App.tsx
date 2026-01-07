@@ -474,8 +474,9 @@ const App: React.FC = () => {
           {activeTab === 'refer' && (
             <div className="space-y-6">
                <MascotFin isSenior={isSenior} countryCode={countryCode} message="Grow your circle and earn credits! I've prepared a contact explorer for you. Invite your friends to the SpendShield family." />
+               {/* Change credits={referralCredits} to days={referralCredits} to fix type error */}
                <ReferralSection 
-                  credits={referralCredits} 
+                  days={referralCredits} 
                   persona={persona} 
                   onReferralSuccess={handleReferralSuccess} 
                />
