@@ -1,20 +1,18 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 /**
- * Root Layout (Next.js App Router Pattern)
- * This component provides the HTML wrapper and global context.
+ * Root Layout Component
+ * Following Next.js App Router conventions to provide a global UI shell.
  */
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children?: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#f9fafb] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      {/* 
-        Next.js usually handles fonts via next/font. 
-        In this environment, we rely on the index.html head for font loading.
-      */}
+    <div className="min-h-screen bg-[#f9fafb] text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 font-sans">
       {children}
     </div>
+  );
+}

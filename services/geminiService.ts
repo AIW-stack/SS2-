@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Subscription, ExploreInsight } from "../types";
 
 // Always initialize the client with an API key from process.env.API_KEY
+// Use a named parameter as required by the latest SDK guidelines.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export interface RecommendationResponse {
@@ -15,7 +16,8 @@ export interface ExploreResponse {
   sources: { title: string; uri: string }[];
 }
 
-// Get AI-powered savings recommendations using Search Grounding
+// Get AI-powered savings recommendations using Search Grounding.
+// Uses 'gemini-3-pro-preview' as this is a complex reasoning task involving financial analysis.
 export const getSmartRecommendations = async (subscriptions: Subscription[], persona: string): Promise<RecommendationResponse> => {
   const prompt = `
     Analyze these user subscriptions for a user in India with the persona: ${persona}.
@@ -35,7 +37,7 @@ export const getSmartRecommendations = async (subscriptions: Subscription[], per
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -58,9 +60,8 @@ export const getSmartRecommendations = async (subscriptions: Subscription[], per
       }
     });
 
-    const rawText = response.text || "[]";
-    const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-    const recommendations = JSON.parse(jsonMatch ? jsonMatch[0] : "[]");
+    // Access the .text property directly to get the generated string output.
+    const recommendations = JSON.parse(response.text || "[]");
     
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const sources = groundingChunks
@@ -77,7 +78,8 @@ export const getSmartRecommendations = async (subscriptions: Subscription[], per
   }
 };
 
-// Get market insights using Search Grounding, combining current affairs with user usage
+// Get market insights using Search Grounding, combining current affairs with user usage.
+// Uses 'gemini-3-pro-preview' for advanced reasoning about market trends and current affairs.
 export const getExploreInsights = async (subscriptions: Subscription[]): Promise<ExploreResponse> => {
   const activeSubs = subscriptions.filter(s => s.status === 'Active').map(s => ({ name: s.name, usage: s.usageLevel }));
   const pausedSubs = subscriptions.filter(s => s.status === 'Paused').map(s => s.name);
@@ -102,7 +104,7 @@ export const getExploreInsights = async (subscriptions: Subscription[]): Promise
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -129,9 +131,8 @@ export const getExploreInsights = async (subscriptions: Subscription[]): Promise
       }
     });
 
-    const rawText = response.text || "[]";
-    const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-    const insights = JSON.parse(jsonMatch ? jsonMatch[0] : "[]");
+    // Directly access the .text property from the response object.
+    const insights = JSON.parse(response.text || "[]");
 
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const sources = groundingChunks

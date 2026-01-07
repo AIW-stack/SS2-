@@ -514,7 +514,7 @@ const App: React.FC = () => {
       <footer className="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t flex items-center justify-around p-4 z-50">
         <MobileNavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="🏠" label="Home" />
         <MobileNavItem active={activeTab === 'subscriptions'} onClick={() => setActiveTab('subscriptions')} icon="📋" label="Subs" />
-        <MobileNavItem active={activeTab === 'refer'} onClick={() => setActiveTab('refer'} icon="🤝" label="Refer" />
+        <MobileNavItem active={activeTab === 'refer'} onClick={() => setActiveTab('refer')} icon="🤝" label="Refer" />
         <MobileNavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon="💳" label="Vault" />
         <MobileNavItem active={activeTab === 'savings-lab'} onClick={() => setActiveTab('savings-lab')} icon="💡" label="Savings" />
       </footer>
