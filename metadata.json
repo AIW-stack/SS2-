@@ -1,0 +1,6 @@
+{
+  "name": "SpendShield2 - Smart Subscription Manager",
+  "description": "SpendShield helps Indian consumers track, control, and optimize their digital subscriptions across UPI, cards, and app stores to stop silent money leaks.",
+  "requestFramePermissions": [],
+  "permissions_rationale": "SpendShield requires SMS access to auto-detect recurring transaction patterns, Account Aggregator consent for banking mandates, and Contacts access to allow users to refer friends and earn credits."
+}
