@@ -133,7 +133,7 @@ export default function Page() {
     setPersona(p);
     setIsRegistering(false);
     setIsLoggedIn(true);
-    setActiveTab('payments');
+    setActiveTab('home');
   };
 
   const handleLinkNewSource = (type: string) => {
@@ -265,6 +265,18 @@ export default function Page() {
             <div className="flex flex-col space-y-10">
               <MascotFin isSenior={isSenior} countryCode={countryCode} message={`Welcome to SpendShield. I've analyzed your upcoming payments.`} />
               <Dashboard totalSpend={totalMonthlySpend} persona={persona} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {MOCK_ADS.slice(0, 2).map(ad => (
+                    <div key={ad.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
+                       <div>
+                          <p className="text-[10px] font-black uppercase text-indigo-500 mb-2">Offer for you</p>
+                          <h4 className="font-black text-slate-900 text-lg">{ad.brand}</h4>
+                          <p className="text-xs text-slate-500 mt-1">{ad.offer}</p>
+                       </div>
+                       <Button size="sm" variant="secondary" className="mt-4 rounded-xl">{ad.cta}</Button>
+                    </div>
+                 ))}
+              </div>
             </div>
           )}
 
