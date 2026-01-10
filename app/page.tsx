@@ -31,7 +31,7 @@ export default function Page() {
   const [currency, setCurrency] = useState('₹');
   const [isPremium, setIsPremium] = useState(false);
   const [persona, setPersona] = useState<UserPersona>('Riser');
-  const [activeTab, setActiveTab] = useState<'home' | 'subscriptions' | 'savings-lab' | 'explore' | 'payments' | 'refer'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'subscriptions' | 'payments' | 'refer'>('home');
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(MOCK_SUBSCRIPTIONS);
   const [paymentSources, setPaymentSources] = useState<PaymentIntegration[]>(MOCK_PAYMENT_SOURCES);
   const [wallet, setWallet] = useState<WalletData>(MOCK_WALLET);
@@ -69,7 +69,6 @@ export default function Page() {
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const fetchInsights = useCallback(async () => {
-    if (!isPremium) return;
     setLoadingInsights(true);
     try {
       const result = await getSmartRecommendations(subscriptions, persona);
@@ -80,7 +79,7 @@ export default function Page() {
     } finally {
       setLoadingInsights(false);
     }
-  }, [subscriptions, persona, isPremium]);
+  }, [subscriptions, persona]);
 
   const fetchExplore = useCallback(async () => {
     setLoadingExplore(true);
@@ -96,12 +95,11 @@ export default function Page() {
   }, [subscriptions]);
 
   useEffect(() => {
-    if (activeTab === 'savings-lab') {
+    if (isLoggedIn) {
       fetchInsights();
-    } else if (activeTab === 'explore') {
       fetchExplore();
     }
-  }, [persona, fetchInsights, fetchExplore, isPremium, activeTab]);
+  }, [isLoggedIn, persona, fetchInsights, fetchExplore]);
 
   const togglePersona = (p: UserPersona) => {
     setPersona(p);
@@ -228,12 +226,10 @@ export default function Page() {
           </div>
 
           <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
-            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="🏠" label="Dashboard" isSenior={isSenior} />
-            <NavItem active={activeTab === 'subscriptions'} onClick={() => setActiveTab('subscriptions')} icon="📋" label="Subscriptions" isSenior={isSenior} />
-            <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon="💳" label="Payment Sources" isSenior={isSenior} />
+            <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="🏠" label="Command Center" isSenior={isSenior} />
+            <NavItem active={activeTab === 'subscriptions'} onClick={() => setActiveTab('subscriptions')} icon="📋" label="Manage Stack" isSenior={isSenior} />
+            <NavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon="💳" label="Secure Vault" isSenior={isSenior} />
             <NavItem active={activeTab === 'refer'} onClick={() => setActiveTab('refer')} icon="🤝" label="Refer & Earn" isSenior={isSenior} />
-            <NavItem active={activeTab === 'savings-lab'} onClick={() => setActiveTab('savings-lab')} icon="💡" label="Savings Lab" isSenior={isSenior} />
-            <NavItem active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} icon="🧭" label="Explore" isSenior={isSenior} />
           </div>
 
           <div className="mt-auto pt-8 border-t border-slate-100">
@@ -274,44 +270,104 @@ export default function Page() {
       </nav>
 
       <main className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar">
-        <div className="max-w-4xl mx-auto pb-24 md:pb-0">
+        <div className="max-w-6xl mx-auto pb-24 md:pb-0">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
             <div className="space-y-1">
               <h1 className={`font-black text-slate-900 tracking-tight ${isSenior ? 'text-5xl' : 'text-3xl'}`}>
                 {activeTab === 'home' && `${regionalGreeting}, ${persona}!`}
-                {activeTab === 'subscriptions' && 'Subscriptions & Safety'}
+                {activeTab === 'subscriptions' && 'Manage Your Stack'}
                 {activeTab === 'payments' && 'Vault & Payment Sources'}
                 {activeTab === 'refer' && 'Refer & Earn Extension'}
-                {activeTab === 'savings-lab' && 'Savings Lab'}
-                {activeTab === 'explore' && 'Market Explorer'}
               </h1>
+              <p className="text-slate-500 font-bold">
+                {activeTab === 'home' && 'Your unified financial hygiene and market pulse report.'}
+              </p>
             </div>
           </div>
 
           {activeTab === 'home' && (
             <div className="flex flex-col space-y-10">
-              <MascotFin isSenior={isSenior} countryCode={countryCode} message={`Welcome to SpendShield. I've analyzed your upcoming payments.`} />
-              <Dashboard totalSpend={totalMonthlySpend} persona={persona} isPremium={isPremium} />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {MOCK_ADS.slice(0, 2).map(ad => (
-                    <div key={ad.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
-                       <div>
-                          <p className="text-[10px] font-black uppercase text-indigo-500 mb-2">Offer for you</p>
-                          <h4 className="font-black text-slate-900 text-lg">{ad.brand}</h4>
-                          <p className="text-xs text-slate-500 mt-1">{ad.offer}</p>
-                       </div>
-                       <Button size="sm" variant="secondary" className="mt-4 rounded-xl">{ad.cta}</Button>
+              <MascotFin isSenior={isSenior} countryCode={countryCode} message={`Welcome back. Your 90-day Pro trial is active. I've integrated your Savings Lab and Market Explorer below.`} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Dashboard Summary Column */}
+                <div className="lg:col-span-2 space-y-10">
+                  <Dashboard totalSpend={totalMonthlySpend} persona={persona} isPremium={isPremium} />
+                  
+                  {/* Integrated Savings Lab Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3 px-2">
+                       <span className="bg-indigo-600 text-white p-2 rounded-xl text-lg">💡</span>
+                       <h3 className="font-black text-slate-900 text-xl">Integrated Savings Lab</h3>
                     </div>
-                 ))}
+                    <MonthlyExpenses 
+                      persona={persona} 
+                      isPremium={isPremium} 
+                      recommendations={recommendations} 
+                      loading={loadingInsights} 
+                      sources={sources} 
+                      onUpgrade={() => setIsPremium(true)} 
+                    />
+                  </div>
+                </div>
+
+                {/* Explorer & Action Column */}
+                <div className="space-y-10">
+                   {/* Upcoming Payments Mini-List */}
+                   <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
+                      <h3 className="font-black text-slate-900 text-lg mb-6 flex items-center">
+                        <span className="mr-2">📅</span> Next Auto-pays
+                      </h3>
+                      <div className="space-y-4">
+                        {subscriptions.filter(s => s.status !== 'Paused').slice(0, 3).map(sub => (
+                          <div key={sub.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-indigo-100 transition-all">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-2xl">{sub.icon}</span>
+                              <div>
+                                <p className="font-black text-slate-900 text-xs">{sub.name}</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(sub.nextRenewal).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
+                              </div>
+                            </div>
+                            <p className="font-black text-slate-900 text-sm">₹{sub.amount}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <Button onClick={() => setActiveTab('subscriptions')} variant="ghost" className="w-full mt-4 text-[10px] font-black uppercase tracking-widest text-indigo-600">Manage All →</Button>
+                   </div>
+
+                   {/* Integrated Market Explorer Section */}
+                   <div className="space-y-6">
+                     <div className="flex items-center space-x-3 px-2">
+                        <span className="bg-teal-600 text-white p-2 rounded-xl text-lg">🧭</span>
+                        <h3 className="font-black text-slate-900 text-xl">Market Pulse</h3>
+                     </div>
+                     <ExploreSection 
+                       insights={exploreInsights} 
+                       sources={exploreSources} 
+                       loading={loadingExplore} 
+                       persona={persona} 
+                       onAction={handleExploreAction} 
+                     />
+                   </div>
+
+                   {/* Winback Section */}
+                   <WinbackSection 
+                    ads={winbackAds} 
+                    onClaim={(ad) => alert(`Claiming ${ad.brand} offer...`)} 
+                    onDismiss={(id) => setWinbackAds(prev => prev.filter(a => a.id !== id))}
+                   />
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'subscriptions' && (
             <div className="space-y-6">
-              {subscriptions.map(sub => (
-                <SubscriptionCard key={sub.id} subscription={{...sub, currency}} persona={persona} onStatusChange={handleStatusChange} />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {subscriptions.map(sub => (
+                  <SubscriptionCard key={sub.id} subscription={{...sub, currency}} persona={persona} onStatusChange={handleStatusChange} />
+                ))}
+              </div>
             </div>
           )}
 
@@ -322,14 +378,6 @@ export default function Page() {
           {activeTab === 'refer' && (
             <ReferralSection days={referralDays} persona={persona} onReferralSuccess={handleReferralSuccess} />
           )}
-
-          {activeTab === 'savings-lab' && (
-            <MonthlyExpenses persona={persona} isPremium={isPremium} recommendations={recommendations} loading={loadingInsights} sources={sources} onUpgrade={() => setIsPremium(true)} />
-          )}
-
-          {activeTab === 'explore' && (
-            <ExploreSection insights={exploreInsights} sources={exploreSources} loading={loadingExplore} persona={persona} onAction={handleExploreAction} />
-          )}
         </div>
       </main>
 
@@ -337,7 +385,6 @@ export default function Page() {
         <MobileNavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="🏠" label="Home" />
         <MobileNavItem active={activeTab === 'subscriptions'} onClick={() => setActiveTab('subscriptions')} icon="📋" label="Subs" />
         <MobileNavItem active={activeTab === 'payments'} onClick={() => setActiveTab('payments')} icon="💳" label="Vault" />
-        <MobileNavItem active={activeTab === 'savings-lab'} onClick={() => setActiveTab('savings-lab')} icon="💡" label="Savings" />
       </footer>
     </div>
   );
